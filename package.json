@@ -1,0 +1,24 @@
+{
+  "name": "msnodesqlv8-api-tour",
+  "version": "1.0.0",
+  "description": "single file tour of the msnodesqlv8 API: pool, procs, bulk / bcp, tvp, cancel, errors and more",
+  "main": "api-tour.js",
+  "private": true,
+  "scripts": {
+    "start": "node api-tour.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TimelordUK/msnodesqlv8-api-tour.git"
+  },
+  "homepage": "https://github.com/TimelordUK/msnodesqlv8-api-tour#readme",
+  "keywords": [
+    "msnodesqlv8",
+    "sql server",
+    "odbc"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "msnodesqlv8": "^5.6.0"
+  }
+}
