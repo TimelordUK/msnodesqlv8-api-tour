@@ -7,7 +7,7 @@ self-contained async function you can copy into your own code.
 | section | shows |
 | --- | --- |
 | connect | open, `?` parameters, typed parameters, raw rows, BigInt, callbacks vs promises |
-| events | streaming rows with events, pause / resume |
+| events | streaming rows with events, pause / resume, a compound query handing over from one select to the next |
 | multiple | several statements in one batch: `results[]`, `counts[]` |
 | prepared | prepare once, execute many |
 | procedures | object / array params, defaults, output params, return code, prints |

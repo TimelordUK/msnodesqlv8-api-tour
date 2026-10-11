@@ -8,7 +8,7 @@
   is a self-contained async function, so copy whichever one you need.
 
     connect      open a connection, parameters, typed params, callbacks vs promises
-    events       stream rows with events, pause / resume
+    events       stream rows with events, pause / resume, two selects on one stream
     multiple     several statements in one batch: result sets, row counts
     prepared     prepare once, execute many
     procedures   stored procs: object params, defaults, output params, return code
@@ -159,7 +159,7 @@ async function connect (conn) {
 }
 
 // ---------------------------------------------------------------------------
-// events: stream rows, pause / resume for flow control
+// events: stream rows, pause / resume for flow control, compound query handover
 // ---------------------------------------------------------------------------
 
 async function events (conn) {
@@ -189,6 +189,41 @@ async function events (conn) {
     q.on('done', () => console.log(`done: ${rows} rows read`))
     q.on('free', () => { console.log('free: native statement released'); resolve() })
   })
+
+  // a compound query streams each result set in turn on the same emitter.
+  // the handover is a new 'meta' event: everything before it belongs to the
+  // previous select, everything after to the next. 'done' and 'free' fire
+  // once, after the last result set.
+  console.log('\ntwo selects, one stream:')
+  const sets = await new Promise((resolve, reject) => {
+    const q = conn.query(`
+      select top 3 object_id as id, name from sys.all_objects order by object_id
+      select top 2 name as db, database_id from sys.databases order by database_id`)
+    const sets = [] // one entry per result set: { meta, rows: [] }
+    let row = null
+    q.on('meta', meta => {
+      const prev = sets.at(-1)
+      if (prev) console.log(`  -- end of result set ${sets.length - 1}: ${prev.rows.length} rows`)
+      sets.push({ meta, rows: [] })
+      console.log(`  -- result set ${sets.length - 1} starts: ${meta.map(c => c.name).join(', ')}`)
+    })
+    // the index counts rows across the whole query; it does not restart at 0 per result set
+    q.on('row', index => {
+      row = {}
+      sets.at(-1).rows.push(row)
+      console.log(`  row ${index}`)
+    })
+    q.on('column', (index, value) => {
+      const name = sets.at(-1).meta[index].name
+      row[name] = value
+      console.log(`    ${name} = ${value}`)
+    })
+    q.on('error', reject)
+    q.on('done', () => console.log(`  -- end of result set ${sets.length - 1}: ${sets.at(-1).rows.length} rows\ndone`))
+    q.on('free', () => resolve(sets))
+  })
+  show('rows per result set', sets.map(s => s.rows.length))
+  show('result set 1', sets[1].rows)
 }
 
 // ---------------------------------------------------------------------------
