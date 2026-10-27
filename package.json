@@ -19,6 +19,6 @@
   ],
   "license": "Apache-2.0",
   "dependencies": {
-    "msnodesqlv8": "^6.0.0"
+    "msnodesqlv8": "^6.2.1"
   }
 }
